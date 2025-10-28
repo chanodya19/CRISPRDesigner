@@ -15,7 +15,7 @@ rule find_all_guides:
         mem = config["java_memory"]
     run:
         try:
-			command = f"java -Xmx{params.mem} -jar workflow/scripts/CRISPRDesigner.jar \
+            command = f"java -Xmx{params.mem} -jar workflow/scripts/CRISPRDesigner.jar \
 TARGETS={input.regions} OUTPUT_DIR=results/GuideDesign/ \
 GENOME_FASTA={input.genome_fasta} \
 LENIENT=false \
@@ -31,84 +31,84 @@ SKIP_SCORING=true"
                 pass
             else:
                 raise
-		# the Java script will throw an error when using SKIP_SCORING=true, even when everything works
+        # the Java script will throw an error when using SKIP_SCORING=true, even when everything works
 
 
 checkpoint scatter_scores:
-	input:
-		guides = "results/GuideDesign/allGuides.bed"
-	output:
-		scatterdir = directory('results/GuideDesign/scatter')
-	params:
-		split_guides = config["split_guides"]
-	shell:
-		"""
-		mkdir {output}
-		split --lines={params.split_guides} -d {input.guides} {output}/guides.
-		for file in {output}/guides.*; do 
-		  mkdir -p {output}/dir-$(basename $file)
-		  mv $file {output}/dir-$(basename $file)/allGuides.bed
-		  mv {output}/dir-$(basename $file) $file
-		done
-		"""
+    input:
+        guides = "results/GuideDesign/allGuides.bed"
+    output:
+        scatterdir = directory('results/GuideDesign/scatter')
+    params:
+        split_guides = config["split_guides"]
+    shell:
+        """
+        mkdir {output}
+        split --lines={params.split_guides} -d {input.guides} {output}/guides.
+        for file in {output}/guides.*; do 
+          mkdir -p {output}/dir-$(basename $file)
+          mv $file {output}/dir-$(basename $file)/allGuides.bed
+          mv {output}/dir-$(basename $file) $file
+        done
+        """
 
 rule score_guides:
-	input:
-		guide_scatter = 'results/GuideDesign/scatter/guides.{i}/',
-		regions = config["regions"],
-		genome_fasta = config["genome_fasta"],
-		off_target_bits = config["off_target_bits"]
-	output:
-		scored = 'results/GuideDesign/scatter/guides.{i}/filteredGuides.bed'
-	params:
-		mem = config["java_memory"],
-		cwd = os.getcwd()
-	shell:
-		"""
-		(
-		cd {input.guide_scatter}
-		java -Xmx{params.mem} -jar {params.cwd}/workflow/scripts/CRISPRDesigner.jar \
-		  TARGETS={params.cwd}/{input.regions} \
-		  OUTPUT_DIR={params.cwd}/{input.guide_scatter} \
-		  GENOME_FASTA={input.genome_fasta} \
-		  LENIENT=false \
-		  OFF_TARGETS={input.off_target_bits} \
-		  SKIP_PAIRING=true \
-		  DIVIDE_AND_CONQUER=false \
-		  SKIP_SCORING=false \
-		  SKIP_GENERATION=true
-		)
-		"""
-		# SKIP_GENERATION=true means that the script will read a set of guides present in "OUTPUT_DIR/allGuides.bed"
-		# SKIP_SCORING=false means that the script will conduct the off-targeting scoring calculation
+    input:
+        guide_scatter = 'results/GuideDesign/scatter/guides.{i}/',
+        regions = config["regions"],
+        genome_fasta = config["genome_fasta"],
+        off_target_bits = config["off_target_bits"]
+    output:
+        scored = 'results/GuideDesign/scatter/guides.{i}/filteredGuides.bed'
+    params:
+        mem = config["java_memory"],
+        cwd = os.getcwd()
+    shell:
+        """
+        (
+        cd {input.guide_scatter}
+        java -Xmx{params.mem} -jar {params.cwd}/workflow/scripts/CRISPRDesigner.jar \
+          TARGETS={params.cwd}/{input.regions} \
+          OUTPUT_DIR={params.cwd}/{input.guide_scatter} \
+          GENOME_FASTA={input.genome_fasta} \
+          LENIENT=false \
+          OFF_TARGETS={input.off_target_bits} \
+          SKIP_PAIRING=true \
+          DIVIDE_AND_CONQUER=false \
+          SKIP_SCORING=false \
+          SKIP_GENERATION=true
+        )
+        """
+        # SKIP_GENERATION=true means that the script will read a set of guides present in "OUTPUT_DIR/allGuides.bed"
+        # SKIP_SCORING=false means that the script will conduct the off-targeting scoring calculation
 
 
 def aggregate_input(wildcards):
-	'''
-	aggregate the file names of the files generated at the scatter step
-	'''
-	checkpoint_output = checkpoints.scatter_scores.get().output.scatterdir
-	ivals = glob_wildcards(os.path.join(checkpoint_output, 'guides.{i}/allGuides.bed')).i
-	#print("ivals={}".format(ivals))
-	return expand('{dir}/guides.{i}/filteredGuides.bed', dir=checkpoint_output, i=ivals)
+    '''
+    aggregate the file names of the files generated at the scatter step
+    '''
+    checkpoint_output = checkpoints.scatter_scores.get().output.scatterdir
+    ivals = glob_wildcards(os.path.join(checkpoint_output, 'guides.{i}/allGuides.bed')).i
+    #print("ivals={}".format(ivals))
+    return expand('{dir}/guides.{i}/filteredGuides.bed', dir=checkpoint_output, i=ivals)
 
 
 rule gather_and_relabel_guide_scores:
-	input:
-		aggregate_input
-	params:
-		genome_sizes = config["genome_sizes"],
-		regions = config["regions"]
-	output:
-		combined = 'results/GuideDesign/filteredGuides.new.bed'
-	shell:
-		'''
-		cat {input} | \
-		awk -v OFS=$'\t' '{{ $14="FILLER"; print $0 }}' | \
-		bedtools sort -i stdin -faidx {params.genome_sizes} | \
-		uniq | \
-		bedtools intersect -a stdin -b {params.regions} -wa -wb | cut -f 1-13,18 > {output.combined}
-		'''
+    input:
+        aggregate_input
+    params:
+        genome_sizes = config["genome_sizes"],
+        regions = config["regions"]
+    output:
+        combined = 'results/GuideDesign/filteredGuides.new.bed'
+    shell:
+        '''
+        cat {input} | \
+        awk -v OFS=$'\t' '{{ $14="FILLER"; print $0 }}' | \
+        bedtools sort -i stdin -faidx {params.genome_sizes} | \
+        uniq | \
+        bedtools intersect -a stdin -b {params.regions} -wa -wb | cut -f 1-13,18 > {output.combined}
+        '''
 
 rule rename_filtered_guides:
     input:
