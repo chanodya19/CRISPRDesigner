@@ -4,17 +4,17 @@ import subprocess
 import os
 
 rule find_all_guides:
-	## Find all NGG PAM guides in the selected regions
-	    input:
-        regions = config["regions"],  # This points to your actual BED file
+    ## Find all NGG PAM guides in your enhancer regions
+    input:
+        regions = config["regions"],
         genome_fasta = config["genome_fasta"],
         off_target_bits = config["off_target_bits"]
     output:
         guides = "results/GuideDesign/allGuides.bed"
     params:
         mem = config["java_memory"]
-	run:
-		try:
+    run:
+        try:
 			command = f"java -Xmx{params.mem} -jar workflow/scripts/CRISPRDesigner.jar \
 TARGETS={input.regions} OUTPUT_DIR=results/GuideDesign/ \
 GENOME_FASTA={input.genome_fasta} \
@@ -23,14 +23,14 @@ OFF_TARGETS={input.off_target_bits} \
 SKIP_PAIRING=true \
 DIVIDE_AND_CONQUER=false \
 SKIP_SCORING=true"
-			print("Running: " + command)
-			proc_output = subprocess.check_output(command, shell=True) 
-		except subprocess.CalledProcessError as exc:
-			if 'filteredGuides.bed' in str(exc.output):
-				print("Snakemake caught Java Exception: Ignore this error, which is expected")
-				pass
-			else:
-				raise
+            print("Running: " + command)
+            proc_output = subprocess.check_output(command, shell=True)
+        except subprocess.CalledProcessError as exc:
+            if 'filteredGuides.bed' in str(exc.output):
+                print("Snakemake caught Java Exception: Ignore this error, which is expected")
+                pass
+            else:
+                raise
 		# the Java script will throw an error when using SKIP_SCORING=true, even when everything works
 
 
@@ -110,31 +110,26 @@ rule gather_and_relabel_guide_scores:
 		bedtools intersect -a stdin -b {params.regions} -wa -wb | cut -f 1-13,18 > {output.combined}
 		'''
 
-rule combine_new_predesigned:
-	input:
-		newguides = 'results/GuideDesign/filteredGuides.new.bed',
-		predesigned = 'results/GuideDesign/filteredGuides.predesigned.bed',
-		genome_sizes = config["genome_sizes"]
-	output:
-		combinedGuides = 'results/GuideDesign/filteredGuides.bed'
-	shell:
-		"""
-		cat {input.newguides} {input.predesigned} | bedtools sort -i stdin -faidx {input.genome_sizes} | uniq > {output.combinedGuides}
-		"""
+rule rename_filtered_guides:
+    input:
+        newguides = 'results/GuideDesign/filteredGuides.new.bed'
+    output:
+        combinedGuides = 'results/GuideDesign/filteredGuides.bed'
+    shell:
+        "cp {input.newguides} {output.combinedGuides}"
+
 
 rule filter_guides:
-    ## Filter on MIT specificity score > 50, and no "TTTT" sequences
-    ## Also rearranges the columns and outputs a BED file for viewing
-	input:
-		combined_guides = 'results/GuideDesign/filteredGuides.bed',
-		genome_sizes = config["genome_sizes"]
-	output:
-		design_guides = 'results/GuideDesign/designGuides.txt',
-		design_guides_igv = 'results/GuideDesign/designGuides.bed'
-	shell:
-		"""
-		echo -e "chr\tstart\tend\tlocus\tscore\tstrand\tGuideSequenceWithPAM\tguideSet\tSSC" > {output.design_guides}
-		cat {input.combined_guides} | grep -v "TTTT" | awk '{{if ($5 > 50) print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $13 "\t" $14 "\t0" }}' >> {output.design_guides}
-		sed 1d {output.design_guides} | cut -f 1-6 | uniq > {output.design_guides_igv}
-		"""
+    input:
+        combined_guides = 'results/GuideDesign/filteredGuides.bed',
+        genome_sizes = config["genome_sizes"]
+    output:
+        design_guides = 'results/GuideDesign/designGuides.txt',
+        design_guides_igv = 'results/GuideDesign/designGuides.bed'
+    shell:
+        """
+        echo -e "chr\tstart\tend\tlocus\tscore\tstrand\tGuideSequenceWithPAM\tguideSet\tSSC" > {output.design_guides}
+        cat {input.combined_guides} | grep -v "TTTT" | awk '{{if ($5 > 50) print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $13 "\t" $14 "\t0" }}' >> {output.design_guides}
+        sed 1d {output.design_guides} | cut -f 1-6 | uniq > {output.design_guides_igv}
+        """
  
