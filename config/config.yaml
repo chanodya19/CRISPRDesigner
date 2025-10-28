@@ -26,7 +26,7 @@ regions: "data/enhancer_information_Timoriginal_extracted.bed"
  # }
 #}
 
-java_memory:      "64g"  ## Increase if Java command fails (sometimes needs up to 64g for large sets of regions) 
+java_memory:      "16g"  ## Increase if Java command fails (sometimes needs up to 64g for large sets of regions) 
 split_guides:     50    ## Split scoring into chunks of N guideRNAs
 
 
