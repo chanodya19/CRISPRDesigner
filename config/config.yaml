@@ -12,7 +12,6 @@
 genome_fasta: "../data/hg19.fa"
 genome_sizes: "../data/hg19.chrom.sizes"
 off_target_bits: "../data/hg19.CRISPR.bit"
-promoters:        "/home/groups/engreitz/Software/ABC-Enhancer-Gene-Prediction/reference/RefSeqCurated.170308.bed.CollapsedGeneBounds.TSS500bp.bed"
 promoters: "../data/RefSeqCurated.170308.bed.CollapsedGeneBounds.TSS500bp.bed"
 
 ## 
