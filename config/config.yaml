@@ -15,7 +15,7 @@ off_target_bits: "data/hg19.CRISPR.bit"
 promoters: "data/RefSeqCurated.170308.bed.CollapsedGeneBounds.TSS500bp.bed"
 
 ## 
-regions: "data/enhancer_information_Timoriginal_extracted.noprefix.bed"
+regions: "data/enhancer_information_Timoriginal_extracted.bed"
 
 ## Pre-designed gRNAs (provide so designer will not redesign or rescore guides in these regions, to save compute time)
 #predesigned_guides: {
