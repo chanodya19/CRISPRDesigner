@@ -62,17 +62,17 @@ rule score_guides:
         scored = 'results/GuideDesign/scatter/guides.{i}/filteredGuides.bed'
     params:
         mem = config["java_memory"],
-        cwd = os.getcwd()
+        root = config["project_root"]
     shell:
         """
         (
         cd {input.guide_scatter}
-        java -Xmx{params.mem} -jar {params.cwd}/workflow/scripts/CRISPRDesigner.jar \
-          TARGETS={params.cwd}/{input.regions} \
-          OUTPUT_DIR={params.cwd}/{input.guide_scatter} \
-          GENOME_FASTA={input.genome_fasta} \
+        java -Xmx{params.mem} -jar {params.root}/workflow/scripts/CRISPRDesigner.jar \
+          TARGETS={params.root}/{input.regions} \
+          OUTPUT_DIR={params.root}/{input.guide_scatter} \
+          GENOME_FASTA={params.root}/{input.genome_fasta} \
           LENIENT=false \
-          OFF_TARGETS={input.off_target_bits} \
+          OFF_TARGETS={params.root}/{input.off_target_bits} \
           SKIP_PAIRING=true \
           DIVIDE_AND_CONQUER=false \
           SKIP_SCORING=false \
