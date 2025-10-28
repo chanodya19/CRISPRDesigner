@@ -9,13 +9,13 @@
 
 ## Genome files
 ##   Download off_target_bits files for hg19 or mm9 from https://drive.google.com/drive/u/1/folders/1F5-v0KopsE7hshjwMbHEryXd2wkDdR2Q
-genome_fasta: "../data/hg19.fa"
-genome_sizes: "../data/hg19.chrom.sizes"
-off_target_bits: "../data/hg19.CRISPR.bit"
-promoters: "../data/RefSeqCurated.170308.bed.CollapsedGeneBounds.TSS500bp.bed"
+genome_fasta: "data/hg19.fa"
+genome_sizes: "data/hg19.chrom.sizes"
+off_target_bits: "data/hg19.CRISPR.bit"
+promoters: "data/RefSeqCurated.170308.bed.CollapsedGeneBounds.TSS500bp.bed"
 
 ## 
-regions: "../data/enhancer_information_Timoriginal_extracted.bed"
+regions: "data/enhancer_information_Timoriginal_extracted.bed"
 
 ## Pre-designed gRNAs (provide so designer will not redesign or rescore guides in these regions, to save compute time)
 #predesigned_guides: {
@@ -25,7 +25,7 @@ regions: "../data/enhancer_information_Timoriginal_extracted.bed"
  # }
 #}
 
-java_memory:      "14g"  ## Increase if Java command fails (sometimes needs up to 64g for large sets of regions) 
+java_memory:      "64g"  ## Increase if Java command fails (sometimes needs up to 64g for large sets of regions) 
 split_guides:     50    ## Split scoring into chunks of N guideRNAs
 
 
