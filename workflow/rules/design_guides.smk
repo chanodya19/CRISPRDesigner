@@ -190,4 +190,5 @@ rule filter_guides:
         """
         echo -e "chr\tstart\tend\tlocus\tscore\tstrand\tGuideSequenceWithPAM\tguideSet\tSSC" > {output.design_guides}
         cat {input.combined_guides} | grep -v "TTTT" | awk '{{if ($5 > 50) print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $13 "\t" $14 "\t0" }}' >> {output.design_guides}
-        sed 1d {output.design_guides} |
+        sed 1d {output.design_guides} | cut -f 1-6 | uniq > {output.design_guides_igv}
+        """
