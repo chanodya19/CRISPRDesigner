@@ -9,7 +9,6 @@
 
 ## Genome files
 ##   Download off_target_bits files for hg19 or mm9 from https://drive.google.com/drive/u/1/folders/1F5-v0KopsE7hshjwMbHEryXd2wkDdR2Q
-project_root: "/mnt/c/Users/chano/Bioinformatics/251028_gRNA_design/CRISPRDesigner"
 genome_fasta: "data/hg19.fa"
 genome_sizes: "data/hg19.chrom.sizes"
 off_target_bits: "data/hg19.CRISPR.bit"
